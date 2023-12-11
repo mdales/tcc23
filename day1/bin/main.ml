@@ -37,30 +37,30 @@ let draw_tree x y =
           (x + pot_upper_radius, y + pot_height); 
           (x - pot_upper_radius, y + pot_height); 
           (x - pot_lower_radius, y) 
-        |];
-  (* trunk *)
-  set_color (rgb 0xC0 0x80 0x20);
-  let trunk_radius = 20 in
+        |]; ; ;
+    (* trunk *)
+    set_color (rgb 0xC0 0x80 0x20);
     let trunk_height = 50 in
-      fill_rect (x - trunk_radius) (y + pot_height) (trunk_radius * 2) (trunk_height);
-  (* leaves *)
-  set_color (rgb 0x20 0xA0 0x20);
-  let tiers = 4 in
-    let tree_radius = 100 in
+      let trunk_radius = 20 in
+          fill_rect (x - trunk_radius) (y + pot_height) (trunk_radius * 2) (trunk_height); ;
+      (* leaves *)
+      set_color (rgb 0x20 0xA0 0x20);
       let tree_height = 250 in
-        for i = 0 to tiers do
-        (* let i = 0 in *)
-          fill_poly [| 
-            ((x + tree_radius) + ((tiers - i) * 15), y + pot_height + trunk_height + (i * 30)); 
-            (x, y + pot_height + trunk_height + tree_height - ((tiers - i) * 30));
-            ((x - tree_radius) - ((tiers - i) * 15), y + pot_height + trunk_height + (i * 30)) 
-          |]
-        done;
-  (* star *)
-  set_color yellow;
-  let star_offset = (y + pot_height + trunk_height + tree_height) in
-    fill_poly [| (x, star_offset - 20); (x + 15, star_offset + 10); (x - 15, star_offset + 10) |];
-    fill_poly [| (x, star_offset + 20); (x + 15, star_offset - 10); (x - 15, star_offset - 10) |]
+        let tiers = 4 in
+          let tree_radius = 100 in
+              for i = 0 to tiers do
+              (* let i = 0 in *)
+                fill_poly [| 
+                  ((x + tree_radius) + ((tiers - i) * 15), y + pot_height + trunk_height + (i * 30)); 
+                  (x, y + pot_height + trunk_height + tree_height - ((tiers - i) * 30));
+                  ((x - tree_radius) - ((tiers - i) * 15), y + pot_height + trunk_height + (i * 30)) 
+                |]
+              done; ; ;
+        (* star *)
+        set_color yellow;
+        let star_offset = (y + pot_height + trunk_height + tree_height) in
+          fill_poly [| (x, star_offset - 20); (x + 15, star_offset + 10); (x - 15, star_offset + 10) |];
+          fill_poly [| (x, star_offset + 20); (x + 15, star_offset - 10); (x - 15, star_offset - 10) |]
 
 let draw_scene = 
   draw_background;
