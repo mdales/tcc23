@@ -1,26 +1,13 @@
 open Graphics
-;;
-auto_synchronize false
 
-;;
-display_mode false
-
-;;
-remember_mode true
-
-;;
-(* The space here before the res is important :/ *)
-open_graph " 640x480"
-;;
-
-let draw_background = 
+let draw_background () = 
   let horizon_height = (480 / 3) in
     set_color white;
     fill_rect 0 0 640 horizon_height;
     set_color blue;
     fill_rect 0 horizon_height 640 (480  - horizon_height)
 
-let draw_stars = 
+let draw_stars () = 
   set_color white;
   for i = 0 to 480 do
     plot (Random.int 640) i
@@ -62,16 +49,18 @@ let draw_tree x y =
           fill_poly [| (x, star_offset - 20); (x + 15, star_offset + 10); (x - 15, star_offset + 10) |];
           fill_poly [| (x, star_offset + 20); (x + 15, star_offset - 10); (x - 15, star_offset - 10) |]
 
-let draw_scene = 
-  draw_background;
-  draw_stars;
-  draw_tree 320 60;
-;;
+let draw_scene () = 
+  draw_background ();
+  draw_stars ();
+  draw_tree 320 60
 
-draw_scene
+let () = 
+  auto_synchronize false;
+  display_mode false;
+  remember_mode true;
 
-;;
-
-synchronize ()
-;;
-ignore (wait_next_event [ Key_pressed ])
+  (* The space here before the res is important :/ *)
+  open_graph " 640x480";
+  draw_scene ();
+  synchronize ();
+  ignore (wait_next_event [ Key_pressed ])
