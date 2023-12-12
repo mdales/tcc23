@@ -1,8 +1,13 @@
 open Graphics
 
+let cls (c: color) = 
+  set_color c;
+  fill_rect 0 0 (size_x ()) (size_y ())
+
 let tick (t: int) =
+  cls black;
   set_color green;
-  fill_rect (t mod 540) (t mod 380) 10 10;
+  fill_rect (t mod 630) (t mod 470) 10 10;
   set_color red;
   fill_rect 110 110 100 100
 
@@ -18,7 +23,7 @@ let () =
 
     let t = ref 0 in
       while true do
-        Unix.sleepf 0.05;
+        (* Unix.sleepf 0.05; *)
         let status = wait_next_event[ Poll; Key_pressed ] in
           if status.keypressed && status.key == ' ' then 
             raise Exit 

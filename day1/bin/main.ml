@@ -24,7 +24,7 @@ let draw_tree x y =
           (x + pot_upper_radius, y + pot_height); 
           (x - pot_upper_radius, y + pot_height); 
           (x - pot_lower_radius, y) 
-        |]; ; ;
+        |]; ; ; 
     (* trunk *)
     set_color (rgb 0xC0 0x80 0x20);
     let trunk_height = 50 in
