@@ -1,25 +1,25 @@
 open Graphics
 
-let cls (c: color) = 
-  set_color c;
-  fill_rect 0 0 (size_x ()) (size_y ())
-
 let tick (t: int) =
-  cls black;
-  set_color green;
-  fill_rect (t mod 630) (t mod 470) 10 10;
-  set_color red;
-  fill_rect 110 110 100 100
+  let height = size_y () in 
+    let width = size_x () in
+      for y = 0 to height do
+        for x = 0 to width do
+          set_color ((x * y * t) mod 0xFFFFFF);
+          plot x y
+        done
+      done
 
 let inner_tick (t: int) =
     tick t;
     synchronize ()
 
 let () = 
+  open_graph " 640x480";
+  set_window_title "day3";
   auto_synchronize false;
   display_mode false;
   remember_mode true;
-  open_graph " 640x480";
 
     let t = ref 0 in
       while true do
