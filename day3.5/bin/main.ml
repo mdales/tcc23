@@ -1,30 +1,39 @@
 open Graphics
 
-let palette = [
-  0x1a1c2c;
-  0x5d275d;
-  0xb13e53;
-  0xef7d57;
-  0xffcd75;
-  0xa7f070;
-  0x38b764;
-  0x257179;
-  0x29366f;
-  0x3b5dc9;
-  0x41a6f6;
-  0x73eff7;
-  0xf4f4f4;
-  0x94b0c2;
-  0x566c86;
-  0x333c57
-]
+let tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
+
+exception String_not_multiple_of_chunk_size
+
+let string_to_chunks (x: string) (size: int) : string list =
+  let rec loop sofar remainder =
+    let length_left = String.length remainder in
+      if length_left >= size then
+        loop ((String.sub remainder 0 size) :: sofar) (String.sub remainder size (length_left - size))
+      else if length_left == 0 then
+        sofar
+      else 
+        raise String_not_multiple_of_chunk_size
+    in 
+      List.rev (loop [] x)
+
+let chunks_to_colors (raw: string list) : int list =
+  List.map ( fun (colorstr: string): int ->
+    int_of_string ("0x" ^ colorstr)
+  ) raw
+
+let load_tic80_palette (raw: string) = 
+  let parts = String.split_on_char ':' raw in
+    let strchunks = string_to_chunks (List.nth parts 1) 6 in
+      chunks_to_colors strchunks
+
+let palette = load_tic80_palette tic80_palette
 
 let tick (t: int) =
   let height = size_y () in 
     let width = size_x () in
       for y = 0 to height do
         for x = 0 to width do
-          let color = List.nth palette (((x / 3) + (y / 3) + t) mod 0xF) in
+          let color = List.nth palette (((x / 3) + (y / 3) + t) mod (List.length palette)) in
             set_color color;
             plot x y
         done
