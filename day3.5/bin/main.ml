@@ -29,15 +29,14 @@ let load_tic80_palette (raw: string) =
 let palette = load_tic80_palette tic80_palette
 
 let tick (t: int) =
-  let height = size_y () in 
-    let width = size_x () in
-      for y = 0 to height do
-        for x = 0 to width do
-          let color = List.nth palette (((x / 3) + (y / 3) + t) mod (List.length palette)) in
-            set_color color;
-            plot x y
-        done
+  let height = size_y () and width = size_x () in
+    for y = 0 to height do
+      for x = 0 to width do
+        let color = List.nth palette (((x / 3) + (y / 3) + t) mod (List.length palette)) in
+          set_color color;
+          plot x y
       done
+    done
 
 let inner_tick (t: int) =
     tick t;
@@ -50,13 +49,13 @@ let () =
   display_mode false;
   remember_mode true;
 
-    let t = ref 0 in
-      while true do
-        (* Unix.sleepf 0.05; *)
-        let status = wait_next_event[ Poll; Key_pressed ] in
-          if status.keypressed && status.key == ' ' then 
-            raise Exit 
-          else
-            inner_tick !t;
-            t := !t + 1;
-      done;
+  let t = ref 0 in
+    while true do
+      (* Unix.sleepf 0.05; *)
+      let status = wait_next_event[ Poll; Key_pressed ] in
+        if status.keypressed && status.key == ' ' then 
+          raise Exit 
+        else
+          inner_tick !t;
+          t := !t + 1;
+    done;
