@@ -25,14 +25,29 @@ let load_tic80_palette (raw : string) =
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks
 
+let generate_plasma_palette (size : int) : int list = 
+  List.init size (fun (index : int): int ->
+    let fi = float_of_int index and fsize = float_of_int size in
+    let fred = (cos (fi *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
+    let fgreen = (cos ((fi +. (fsize /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
+    let fblue = (cos ((fi +. ((fsize *. 2.0) /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
+
+    ((int_of_float fred) * 65536) + ((int_of_float fgreen) * 256) + (int_of_float fblue)
+  )
+
 let a_palette = load_tic80_palette tic80_palette
 let b_palette = load_tic80_palette havrekaka_palette
+let c_palette = generate_plasma_palette 16
 
 let tick (t : int) =
   let height = size_y () and width = size_x () in
   for y = 0 to height do
     for x = 0 to width do
-      let palette = if ((t / 50) mod 2) > 0 then a_palette else b_palette in
+      let palette = match ((t / 50) mod 3) with
+        | 0 -> a_palette 
+        | 1 -> b_palette
+        | _ -> c_palette 
+      in
       let ft = float_of_int t and fx = float_of_int (x / 2) and fy = float_of_int (y / 2) in
       let z = 10.0 +. (sin (ft /. 1000.0) *. 5.0)
       and d = 10.0 +. (cos (ft /. 1000.0) *. 5.0) in
