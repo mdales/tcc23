@@ -56,7 +56,7 @@ let inner_tick (t : int) =
 
 let () =
   open_graph " 640x480";
-  set_window_title "TCC Day 4";
+  set_window_title "TCC Day 5";
   auto_synchronize false;
 
   let t = ref 0 in
