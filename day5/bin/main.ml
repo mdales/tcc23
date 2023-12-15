@@ -45,34 +45,19 @@ let tick (t : int) =
     for i = 0 to width do
       let x = float_of_int (i - (width / 2))
       and y = float_of_int (j - (height / 2)) in
-      let d1 = 400.0 /. sqrt ((x *. x) +. (y *. y) +. 1.0)
+      let d1 = (float_of_int width) /. sqrt ((x *. x) +. (y *. y) +. 1.0)
       and c1 = ((atan2 y x) +. Float.pi) *. (16.0 /. (2.0 *. Float.pi)) in
       let c2 = c1 +. (sin (ft /. 70.0) *. Float.pi *. 2.0) 
       and d2 = d1 +. (Float.rem (ft /. 10.0) 16.0) in
-      let p = (int_of_float d2) lxor (int_of_float c2) in
-      let color = List.nth a_palette ((p land 0x7) + 8) in
+      let p = (int_of_float (Float.floor d2)) lxor (int_of_float (Float.floor c2)) in
+      let pindex = ((p land 11) + 8) mod 16 in 
+      let color = List.nth a_palette (if pindex < 0 then (16 + pindex) else pindex) in
       set_color color;
       plot i j
     done
-  done
-
-
-let _tick (t : int) =
-  let height = size_y () and width = size_x () and ft = (float_of_int t) in
-  for j = 0 to height do
-    for i = 0 to width do
-      let x = float_of_int (i - (width / 2))
-      and y = float_of_int (j - (height / 2)) in
-      let d1 = 400.0 /. sqrt ((x *. x) +. (y *. y) +. 1.0)
-      and c1 = ((atan2 y x) +. Float.pi) *. (16.0 /. (2.0 *. Float.pi)) in
-      let c2 = c1 +. (sin (ft /. 70.0) *. Float.pi *. 2.0) 
-      and d2 = (int_of_float d1) + ((t / 10) mod 16) in
-      let p = (d2) lxor (int_of_float c2) in
-      let color = List.nth a_palette ((p land 0x7) + 8) in
-      set_color color;
-      plot i j
-    done
-  done
+  done;
+  set_color (15);
+  fill_circle (width / 2) (height / 2) 15
 
 let inner_tick (t : int) =
   tick t;
