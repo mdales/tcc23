@@ -1,7 +1,9 @@
 open Graphics
 
-let tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
-let havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
+let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
+let _havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
+let _vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb" (* f4f4f494b0c2566c86333c57*)
+let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb7400b86930c35e60ce5390d94ea8de48bfe3" (* f4f4f494b0c2566c86333c57*)
 
 exception String_not_multiple_of_chunk_size
 
@@ -25,38 +27,27 @@ let load_tic80_palette (raw : string) =
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks
 
-let generate_plasma_palette (size : int) : int list = 
-  List.init size (fun (index : int): int ->
-    let fi = float_of_int index and fsize = float_of_int size in
-    let fred = (cos (fi *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
-    let fgreen = (cos ((fi +. (fsize /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
-    let fblue = (cos ((fi +. ((fsize *. 2.0) /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
-
-    ((int_of_float fred) * 65536) + ((int_of_float fgreen) * 256) + (int_of_float fblue)
-  )
-
-let a_palette = load_tic80_palette tic80_palette
-let _b_palette = load_tic80_palette havrekaka_palette
-let _c_palette = generate_plasma_palette 16
+let a_palette = load_tic80_palette vapour_palette
 
 let tick (t : int) =
-  let height = size_y () and width = size_x () and ft = (float_of_int t) in
+  let height = size_y () and width = size_x () and ft = (float_of_int t) and colors = (List.length a_palette) in
+  let fcolors = float_of_int colors in
   for j = 0 to height do
     for i = 0 to width do
       let x = float_of_int (i - (width / 2))
       and y = float_of_int (j - (height / 2)) in
       let d1 = (float_of_int width) /. sqrt ((x *. x) +. (y *. y) +. 1.0)
-      and c1 = ((atan2 y x) +. Float.pi) *. (16.0 /. (2.0 *. Float.pi)) in
+      and c1 = ((atan2 y x) +. Float.pi) *. (fcolors /. (2.0 *. Float.pi)) in
       let c2 = c1 +. (sin (ft /. 70.0) *. Float.pi *. 2.0) 
-      and d2 = d1 +. (Float.rem (ft /. 10.0) 16.0) in
-      let p = (int_of_float (Float.floor d2)) lxor (int_of_float (Float.floor c2)) in
-      let pindex = ((p land 11) + 8) mod 16 in 
-      let color = List.nth a_palette (if pindex < 0 then (16 + pindex) else pindex) in
+      and d2 = d1 +. (Float.rem (ft /. 10.0) fcolors) in
+      let p = (int_of_float (Float.floor c2)) lxor (int_of_float (Float.floor d2)) in
+      let pindex = (p mod colors) in 
+      let color = List.nth a_palette (if pindex < 0 then (colors + pindex) else pindex) in
       set_color color;
       plot i j
     done
   done;
-  set_color (15);
+  set_color (List.nth a_palette 1);
   fill_circle (width / 2) (height / 2) 15
 
 let inner_tick (t : int) =
