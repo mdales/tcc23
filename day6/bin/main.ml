@@ -30,19 +30,32 @@ let load_tic80_palette (raw : string) =
 
 let a_palette = load_tic80_palette tic80_palette
 
-let tick (t : int) =
-  let b = (t / 20) mod 8 in
-  set_color (List.nth a_palette b);
-  fill_rect 0 0 640 480;
-  set_color (List.nth a_palette (b + 8));
-  fill_rect 0 0 640 200;
+let draw_snow (t: int) (seed: int) (diameter: int) = 
+  set_color white;
+  Random.init seed;
+  for i = 0 to 640 do
+    let updated_i = i - (t mod 640) in
+      let adjusted_updated_i = 
+        (if updated_i >= 0 then updated_i else updated_i + 640) in
+          (* plot (Random.int 640) adjusted_updated_i; *)
+          fill_circle adjusted_updated_i (Random.int 480) diameter
+  done
 
-  let width = size_x () and char_width = 23 in 
+let tick (t : int) =
+  let width = size_x () and height = size_y () in
+
+  (* background *)
+  set_color (List.nth a_palette 15);
+  fill_rect 0 0 width height;
+  draw_snow t 42 1;
+
+  (* text scroller *)
+  let char_width = 30 in 
   for index = 0 to ((String.length prose) - 1) do
     let x = 640 + ((index * char_width) - ((t * 2) mod (width + (char_width * String.length prose)))) in 
     let h1 = (sin ((float_of_int x) /. 30.)) *. 20. in
-    let h2 = ((abs_float h1) *. 4.) *. (640. /. (640. -. float_of_int x)) in 
-    let h3 = int_of_float h2 in
+    let h2 = (h1 *. 2.) in
+    let h3 = (height / 2) + int_of_float h2 in
 
     moveto x h3;
     set_color (List.nth a_palette 8);
@@ -60,7 +73,7 @@ let inner_tick (t : int) =
 
 let () =
   open_graph " 640x480";
-  set_window_title "TCC Day 5";
+  set_window_title "TCC Day 6";
   auto_synchronize false;
   set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1";
 
