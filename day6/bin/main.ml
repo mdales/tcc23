@@ -31,13 +31,14 @@ let load_tic80_palette (raw : string) =
 let a_palette = load_tic80_palette tic80_palette
 
 let draw_stars (t: int) (seed: int) (density: int) = 
+  let width = size_x () and height = size_y () in
   set_color white;
   Random.init seed;
   for _i = 0 to density do
-    let updated_i = (Random.int 640) - (t mod 640) in
+    let updated_i = (Random.int width) - (t mod width) in
       let adjusted_updated_i = 
-        (if updated_i >= 0 then updated_i else updated_i + 640) in
-          fill_circle adjusted_updated_i (Random.int 480) 1
+        (if updated_i >= 0 then updated_i else updated_i + width) in
+          fill_circle adjusted_updated_i (Random.int height) 1
   done
 
 let tick (t : int) =
@@ -56,7 +57,7 @@ let tick (t : int) =
     let x = 640 + ((index * char_width) - ((t * 2) mod (width + (char_width * String.length prose)))) in 
     let h1 = (sin ((float_of_int x) /. 30.)) *. 20. in
     let h2 = (h1 *. 2.) in
-    let h3 = (height / 2) + int_of_float h2 in
+    let h3 = (height / 2) + (int_of_float h2) - (16) in (* 16 is character heigh proxy *)
 
     moveto x h3;
     set_color (List.nth a_palette 8);
