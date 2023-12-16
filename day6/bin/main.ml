@@ -32,12 +32,12 @@ let a_palette = load_tic80_palette tic80_palette
 
 let draw_stars (t: int) (seed: int) (density: int) = 
   let width = size_x () and height = size_y () in
-  set_color white;
   Random.init seed;
   for _i = 0 to density do
     let updated_i = (Random.int width) - (t mod width) in
       let adjusted_updated_i = 
         (if updated_i >= 0 then updated_i else updated_i + width) in
+          set_color (List.nth a_palette (11 + Random.int 3));
           fill_circle adjusted_updated_i (Random.int height) 1
   done
 
