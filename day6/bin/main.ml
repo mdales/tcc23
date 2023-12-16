@@ -30,15 +30,14 @@ let load_tic80_palette (raw : string) =
 
 let a_palette = load_tic80_palette tic80_palette
 
-let draw_snow (t: int) (seed: int) (diameter: int) = 
+let draw_stars (t: int) (seed: int) (density: int) = 
   set_color white;
   Random.init seed;
-  for i = 0 to 640 do
-    let updated_i = i - (t mod 640) in
+  for _i = 0 to density do
+    let updated_i = (Random.int 640) - (t mod 640) in
       let adjusted_updated_i = 
         (if updated_i >= 0 then updated_i else updated_i + 640) in
-          (* plot (Random.int 640) adjusted_updated_i; *)
-          fill_circle adjusted_updated_i (Random.int 480) diameter
+          fill_circle adjusted_updated_i (Random.int 480) 1
   done
 
 let tick (t : int) =
@@ -47,7 +46,9 @@ let tick (t : int) =
   (* background *)
   set_color (List.nth a_palette 15);
   fill_rect 0 0 width height;
-  draw_snow t 42 1;
+  draw_stars t 42 100;
+  draw_stars (t * 2) 22 50;
+  draw_stars (t * 3) 32 25;
 
   (* text scroller *)
   let char_width = 30 in 
