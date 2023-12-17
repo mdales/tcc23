@@ -1,0 +1,4 @@
+(executable
+ (public_name day7)
+ (name main)
+ (libraries day7 graphics unix))
