@@ -34,15 +34,16 @@ let set_palette_color (index : int) =
   let colour = List.nth a_palette index in
   set_color colour
 
-let draw_stars (t: int) (seed: int) (density: int) = 
+let draw_stars (t : int) (seed : int) (density : int) (diameter : int) = 
   let width = size_x () and height = size_y () in
   Random.init seed;
   for _i = 0 to density do
-    let updated_i = (Random.int height) - (t mod height) in
+    let offset = (Random.int 50 + 30) in
+    let updated_i = (Random.int (height)) - (t mod (height)) in
       let adjusted_updated_i = 
         (if updated_i >= 0 then updated_i else updated_i + height) in
           set_palette_color (11 + Random.int 3);
-          fill_circle (Random.int width) adjusted_updated_i  1
+          fill_circle (Random.int width) (adjusted_updated_i + offset) diameter
   done
 
 let draw_tree t x y =
@@ -88,8 +89,7 @@ let tick (t : int) =
   set_palette_color 15;
   fill_rect 0 0 width height;
 
-  draw_stars t 42 100;
-  draw_stars (t * 2) 22 50;
+  draw_stars t 42 100 1;
 
   set_palette_color 12;
   fill_rect 0 0 width (height / 3);
@@ -102,6 +102,7 @@ let tick (t : int) =
       draw_tree t ((index + 1) * tree_gap) (40 + (30 * (index mod 2)));
   done;
 
+  draw_stars (t * 2) 22 50 1;
 
   (* text scroller *)
   let char_width = 30 in 
@@ -125,7 +126,7 @@ let tick (t : int) =
       draw_tree t ((index + 1) * tree_gap) (40 + (3000 * (index mod 2)));
   done;
 
-  draw_stars (t * 3) 32 25
+  draw_stars (t * 3) 32 25 2
 
 let inner_tick (t : int) =
   tick t;
