@@ -134,7 +134,7 @@ let inner_tick (t : int) =
 
 let () =
   open_graph " 640x480";
-  set_window_title "TCC Day 6";
+  set_window_title "TCC Day 7";
   auto_synchronize false;
   set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1";
 
