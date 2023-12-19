@@ -51,59 +51,39 @@ let make_inverse_palette (palette : color list) : color PaletteMap.t =
 
 (* ----- *)
 
-let boot (screen : screen)  =
+let boot (screen : screen) =
   set_palette_color screen.palette 0;
   fill_rect 0 0 screen.width screen.height
 
-
-let tick (t : int) (screen : screen) =
-  let buffer = create_image screen.width screen.height in
-  blit_image buffer 0 0;
-
+let dot (t : int) (screen : screen) (raw : color array array) (delta : int) =
   let dot_size = 24 in
   let ft = float_of_int t
   and fw = float_of_int (screen.width - dot_size)
   and fh = float_of_int (screen.height - dot_size) in
-  let fx = (fw /. 2.) +. (sin ((2.28 +. (0.2 *. cos (ft /. 100.))) *. ft /. 80.) *. (fw /. 2.))
-  and fy = (fh /. 2.) +. (cos ((3.7 +. (0.4 *. sin (ft /. 10.))) *. ft /. 80.) *. (fh /. 2.)) in
+  let fx = (fw /. 2.) +. (sin ((2.28 +. (0.2 *. cos (ft /. 200.))) *. ft /. 80.) *. (fw /. 2.))
+  and fy = (fh /. 2.) +. (cos ((3.7 +. (0.4 *. sin (ft /. 20.))) *. ft /. 80.) *. (fh /. 2.)) in
   let x = int_of_float fx
   and y = int_of_float fy in
-
-  let raw = dump_image buffer in
-
-
-  (* if (t mod 50) == 0 then
-    for j = 0 to (screen.height - 1) do
-      let row = raw.(j) in
-      for i = 0 to (screen.width - 1) do
-        let old_val = row.(x + i) in
-        let old_pal = PaletteMap.find old_val screen.inverse_palette in
-        if old_pal <
-        let new_pal = (old_pal + 1) mod (List.length screen.palette) in
-        row.(x + i) <- List.nth screen.palette new_pal
-
-
-       let a = i + j * screen.width in
-       v=peek(a,4)
-       if v<8 then
-       		v=(v+1)%8
-         poke(a,v,4)
-       end
-     end
-   end
-   poke(0x3FF8*2,v,4)
- end *)
 
   for j = 0 to (dot_size - 1) do
     let row = raw.(y + j) in
 	  for i = 0 to (dot_size - 1) do
         let old_val = row.(x + i) in
         let old_pal = PaletteMap.find old_val screen.inverse_palette in
-        let new_pal = (old_pal + 1) mod (List.length screen.palette) in
-        row.(x + i) <- List.nth screen.palette new_pal
+        let new_pal = (old_pal + delta) mod (List.length screen.palette) in
+        row.(x + i) <- List.nth screen.palette (if new_pal < 0 then new_pal + (List.length screen.palette) else new_pal)
     done
-  done;
+  done
 
+let tick (t : int) (screen : screen) =
+  let buffer = create_image screen.width screen.height in
+  blit_image buffer 0 0;
+  let raw = dump_image buffer in
+
+  dot t screen raw 1;
+  if t >= 100 then
+    dot (t - 100) screen raw (-1)
+else ();
 
   let new_buffer = make_image raw in
   draw_image new_buffer 0 0
