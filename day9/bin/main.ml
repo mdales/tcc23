@@ -114,8 +114,6 @@ let () =
   auto_synchronize false;
   set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1";
 
-  Unix.sleep 10;
-
   boot screen;
 
   let t = ref 0 in
