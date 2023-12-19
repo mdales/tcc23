@@ -83,7 +83,13 @@ let tick (t : int) (screen : screen) =
   dot t screen raw 1;
   if t >= 100 then
     dot (t - 100) screen raw (-1)
-else ();
+  else ();
+
+  dot (t + 123) screen raw 1;
+  if t >= 100 then
+    dot (t + 23) screen raw (-1)
+  else ();
+
 
   let new_buffer = make_image raw in
   draw_image new_buffer 0 0
@@ -107,6 +113,8 @@ let () =
   set_window_title "TCC Day 8";
   auto_synchronize false;
   set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1";
+
+  Unix.sleep 10;
 
   boot screen;
 
