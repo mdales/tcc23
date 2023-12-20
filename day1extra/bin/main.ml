@@ -45,12 +45,13 @@ let expanded_row (screen : screen) (row : int array) : color array =
       Array.make screen.scale col
     ) (Array.to_list row))
 
-let buffer_to_image (screen : screen) =
+let buffer_to_image (screen : screen) : image =
   let raw = Array.concat (List.map (fun (row : int array) : color array array ->
     let colrow = expanded_row screen row in
       Array.make screen.scale colrow
   ) (Array.to_list screen.buffer)) in
    make_image raw
+
 
 (* ----- *)
 
@@ -61,14 +62,23 @@ let boot (screen : screen) =
 let tick (t : int) (screen : screen) =
   Random.init t;
   screen.buffer.(screen.height - 1) <- Array.init screen.width (fun _ -> Random.int (List.length screen.palette));
-  for y = 1 to ((Array.length screen.buffer) - 2) do
-    for x = 1 to ((Array.length screen.buffer.(y)) - 2) do
-      let c = (screen.buffer.(y - 1).(x - 1) +screen.buffer.(y - 1).(x) + screen.buffer.(y - 1).(x + 1) +
-      screen.buffer.(y).(x - 1) +screen.buffer.(y).(x) + screen.buffer.(y).(x + 1) +
-      screen.buffer.(y + 1).(x - 1) +screen.buffer.(y + 1).(x) + screen.buffer.(y + 1).(x + 1)) / 9 in
+  for y = 1 to ((Array.length screen.buffer) - 1) do
+    for x = 0 to ((Array.length screen.buffer.(y)) - 1) do
+      let c = (
+        (if (y > 0) && (x > 0) then screen.buffer.(y - 1).(x - 1) else 0) +
+        (if (y > 0) then screen.buffer.(y - 1).(x) else 0) +
+        (if (y > 0) && (x < (screen.width - 1)) then screen.buffer.(y - 1).(x + 1) else 9) +
+        (if (x > 0) then screen.buffer.(y).(x - 1) else 0) +
+        screen.buffer.(y).(x) +
+        (if (x < (screen.width - 1)) then screen.buffer.(y).(x + 1) else 0 ) +
+        (if (y < (screen.height - 1)) && (x > 0) then screen.buffer.(y + 1).(x - 1) else 0) +
+        (if (y < (screen.height - 1)) then screen.buffer.(y + 1).(x) else 0) +
+        (if (y < (screen.height - 1)) && (x < (screen.width - 1)) then screen.buffer.(y + 1).(x + 1) else 0)
+      ) / 9 in
       screen.buffer.(y - 1).(x) <- c
     done
   done
+
 
 (* ----- *)
 
@@ -81,17 +91,16 @@ let () =
   let palette = load_tic80_palette tic80_palette
   and width = 240
   and height = 136 in
-  let max_col = (List.length palette) - 1 in
   let screen : screen = {
     width = width ;
     height = height ;
     scale = 3 ;
     palette = palette ;
-    buffer = Array.make height (Array.make width max_col) ;
+    buffer = Array.init height (fun _ -> Array.make width 0) ;
   } in
 
   open_graph (Printf.sprintf " %dx%d" (screen.width * screen.scale) (screen.height * screen.scale));
-  set_window_title "TCC Day 8";
+  set_window_title "TCC Day 1 Extra";
   auto_synchronize false;
   (* set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1"; *)
 
@@ -99,7 +108,7 @@ let () =
 
   let t = ref 0 in
   while true do
-    (* Unix.sleepf 0.01; *)
+    Unix.sleepf 0.05;
     let status = wait_next_event[ Poll; Key_pressed ] in
     if status.keypressed && status.key == ' ' then
       raise Exit
