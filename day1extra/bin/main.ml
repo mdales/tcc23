@@ -39,13 +39,18 @@ let set_palette_color (palette : color list) (index : int) =
   let colour = List.nth palette index in
   set_color colour
 
-let buffer_to_image (screen : screen) : image =
-   let raw = (Array.map (fun (row : int array) -> 
-    Array.map (fun (palette_val: int) -> 
-      List.nth screen.palette palette_val
-    ) row
-  ) screen.buffer) in
-      make_image raw
+let expanded_row (screen : screen) (row : int array) : color array =
+  Array.concat (List.map (fun (vl : int) : color array ->
+    let col = List.nth screen.palette vl in
+      Array.make screen.scale col
+    ) (Array.to_list row))
+
+let buffer_to_image (screen : screen) =
+  let raw = Array.concat (List.map (fun (row : int array) : color array array ->
+    let colrow = expanded_row screen row in
+      Array.make screen.scale colrow
+  ) (Array.to_list screen.buffer)) in
+   make_image raw
 
 (* ----- *)
 
@@ -82,13 +87,13 @@ let () =
     height = height ;
     scale = 3 ;
     palette = palette ;
-    buffer = Array.init height (fun _ -> Array.init width (fun _ -> max_col)) ;
+    buffer = Array.make height (Array.make width max_col) ;
   } in
 
   open_graph (Printf.sprintf " %dx%d" (screen.width * screen.scale) (screen.height * screen.scale));
   set_window_title "TCC Day 8";
   auto_synchronize false;
-  set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1";
+  (* set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1"; *)
 
   boot screen;
 
