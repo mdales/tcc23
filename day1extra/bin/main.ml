@@ -74,7 +74,7 @@ let tick (t : int) (screen : screen) =
         (if (y < (screen.height - 1)) && (x > 0) then screen.buffer.(y + 1).(x - 1) else 0) +
         (if (y < (screen.height - 1)) then screen.buffer.(y + 1).(x) else 0) +
         (if (y < (screen.height - 1)) && (x < (screen.width - 1)) then screen.buffer.(y + 1).(x + 1) else 0)
-      ) / 9 in
+      ) / 5 in
       screen.buffer.(y - 1).(x) <- c
     done
   done
