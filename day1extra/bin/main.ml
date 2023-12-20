@@ -64,7 +64,7 @@ let tick (t : int) (screen : screen) =
   screen.buffer.(screen.height - 1) <- Array.init screen.width (fun _ -> Random.int (List.length screen.palette));
   for y = 1 to ((Array.length screen.buffer) - 1) do
     for x = 0 to ((Array.length screen.buffer.(y)) - 1) do
-      let c = (
+      let c = float_of_int (
         (if (y > 0) && (x > 0) then screen.buffer.(y - 1).(x - 1) else 0) +
         (if (y > 0) then screen.buffer.(y - 1).(x) else 0) +
         (if (y > 0) && (x < (screen.width - 1)) then screen.buffer.(y - 1).(x + 1) else 9) +
@@ -74,8 +74,9 @@ let tick (t : int) (screen : screen) =
         (if (y < (screen.height - 1)) && (x > 0) then screen.buffer.(y + 1).(x - 1) else 0) +
         (if (y < (screen.height - 1)) then screen.buffer.(y + 1).(x) else 0) +
         (if (y < (screen.height - 1)) && (x < (screen.width - 1)) then screen.buffer.(y + 1).(x + 1) else 0)
-      ) / 5 in
-      screen.buffer.(y - 1).(x) <- c
+      ) /. 9. in
+      let scaled_c = int_of_float (c *. 1.05) in
+      screen.buffer.(y - 1).(x) <- (min scaled_c ((List.length screen.palette) - 1))
     done
   done
 
