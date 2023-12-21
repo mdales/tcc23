@@ -83,16 +83,16 @@ let tick (t : int) (screen : screen) =
 
   set_palette_color screen.palette 1;
   let ft = float_of_int t in
+  let o = sin (ft /. 10.) in
+  let offset = if o < 0. then ((0. -. o) *. 4.0) else 0. in
   let points : point array = Array.make (17 * 17 * 17) {x=0. ; y=0. ; z=0. } in
   for z = 0 to 16 do
     for y = 0 to 16 do 
       for x = 0 to 16 do 
-        let o = sin (ft /. 10.) in
-        let offset = if o < 0. then ((0. -. o) *. 2.0) else 0. in
         let p : point = {
-          x = float_of_int ((x - 8)) *. (3. +. offset) ; 
-          y = float_of_int ((y - 8)) *. (3. +. offset) ; 
-          z = float_of_int ((z - 8)) *. (3. +. offset) ;
+          x = float_of_int ((x - 8)) *. (4. +. offset) ; 
+          y = float_of_int ((y - 8)) *. (4. +. offset) ; 
+          z = float_of_int ((z - 8)) *. (4. +. offset) ;
         } in
         points.(x + (y * 17) + (z * 17 * 17)) <- rotate_z(
           rotate_x(
