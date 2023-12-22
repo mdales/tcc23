@@ -130,7 +130,7 @@ let () =
   open_graph (Printf.sprintf " %dx%d" screen.width screen.height);
   set_window_title "TCC Day 11";
   auto_synchronize false;
-  set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1";
+  (* set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1"; *)
 
   boot screen;
 

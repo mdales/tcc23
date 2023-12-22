@@ -85,29 +85,46 @@ let tick (t : int) (screen : screen) =
   (* set_palette_color screen.palette (8 + ((t  / 20) mod 8)); *)
   set_color 0;
   fill_rect 0 0 (screen.width - 1) (screen.height - 1);
+  Random.init 42;
 
   let ft = float_of_int t in
-  let tiers = 24 in
-  let points : point array = Array.make (sum tiers) {x=10000. ; y=110. ; z=1000. ; c=15 } in
+  let tiers = 24 and snow_count = 100 in
+  let points : point array = Array.make ((sum tiers) + snow_count) {x=10000. ; y=110. ; z=1000. ; c=15 } in
   for i = 0 to  (tiers - 1) do
     for j = 0 to i do 
-      let fi = float_of_int i and fj = float_of_int j in
+      let fi = float_of_int (i + 1) and fj = float_of_int (j + 1) in
       let p : point = {
-        x = fi *. sin(((fj +. 1.) /. (fi +. 1.)) *. 2. *. Float.pi) *. 10. ;
-        y = 350. -. ((fi +. 1.) *. 20.) ; 
-        z = fi *. cos(((fj +. 1.0) /. (fi +. 1.)) *. 2. *. Float.pi) *. 10. ;
+        x = (fi -. 1.0) *. 10. *. (sin ((fj /. fi) *. 2. *. Float.pi));
+        y = 350. -. ((fi +. 1.) *. 20.) ;
+        z = (fi -. 1.0) *. 10. *. (cos ((fj /. fi) *. 2. *. Float.pi));
         c = (tiers - i + (t / 20)) mod (List.length screen.palette) ;
       } in
-      points.(j + (sum i)) <- rotate_y p (0.01 *. ft)  
+      points.(snow_count + j + (sum i)) <- rotate_y p (0.005 *. ft)
     done
   done;
+
+  for i = 0 to (snow_count - 1) do
+    let volume = 600 in
+    let fall = ((((Random.int volume) - (t * 2)) mod volume)) in
+    let fall2 = if fall < 0 then fall + volume else fall in
+    let fall3 = fall2 - (volume / 2) in
+    let p : point = {
+      x = float_of_int ((Random.int volume) - (volume / 2)) ;
+      y = float_of_int fall3 ;
+      z = float_of_int ((Random.int volume) - (volume / 2)) ;
+      c = 0 ;
+    } in
+    points.(i) <- rotate_y p (0.003 *. ft)
+  done;
+
   Array.sort point_cmp points;
+
   let m = 200. in
   Array.iter (fun e ->
     set_palette_color screen.palette e.c;
     fill_circle 
       ((screen.width / 2) + int_of_float (m *. e.x /. (e.z +. 400.)))
-		  ((screen.height / 2) + int_of_float (m *. e.y /. (e.z +. 400.)))
+      ((screen.height / 2) + int_of_float (m *. e.y /. (e.z +. 400.)))
       ((int_of_float (200. /. ((e.z +. 500.) /. 10.)))) 
   ) points
 
@@ -132,7 +149,7 @@ let () =
 
   let t = ref 0 in
   while true do
-    (* Unix.sleepf 0.01; *)
+    Unix.sleepf 0.01;
     let status = wait_next_event[ Poll; Key_pressed ] in
     if status.keypressed && status.key == ' ' then
       raise Exit
