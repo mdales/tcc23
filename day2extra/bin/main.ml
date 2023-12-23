@@ -7,10 +7,10 @@ type screen = {
   palette         : color list ;
 }
 
-let tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
+let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
 let _havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
-let _vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
-(* let _vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb7400b86930c35e60ce5390d94ea8de48bfe3" *)
+let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
+(* let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb7400b86930c35e60ce5390d94ea8de48bfe3" *)
 
 exception String_not_multiple_of_chunk_size
 
@@ -64,6 +64,7 @@ let boot (screen : screen) =
   fill_rect 0 0 screen.width screen.height
 
 let tick (t : int) (screen : screen) : int array array =
+  Random.init 42;
   let ft = (float_of_int t) /. 50. in
   let x1 = 120. +. ((sin ft) *. 30.) 
   and y1 = 60.
@@ -90,7 +91,7 @@ let inner_tick (t : int) (screen : screen) =
   synchronize ()
 
 let () =
-  let palette = load_tic80_palette tic80_palette
+  let palette = load_tic80_palette vapour_palette
   and width = 240
   and height = 136 in
   let screen : screen = {
