@@ -7,7 +7,7 @@ type screen = {
   palette         : color list ;
 }
 
-let tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
+let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
 let _havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
 let _vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
 (* let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb7400b86930c35e60ce5390d94ea8de48bfe3" *)
@@ -29,7 +29,7 @@ let string_to_chunks (x : string) (size : int) : string list =
 let chunks_to_colors (raw : string list) : int list =
   List.map (fun (colorstr : string): int -> int_of_string ("0x" ^ colorstr)) raw
 
-let load_tic80_palette (raw : string) =
+let _load_tic80_palette (raw : string) =
   let parts = String.split_on_char ':' raw in
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks
@@ -51,6 +51,16 @@ let buffer_to_image (screen : screen) (buffer : int array array) : image =
   ) (Array.to_list buffer)) in
    make_image raw
 
+let generate_plasma_palette (size : int) : int list = 
+  List.init size (fun (index : int): int ->
+    let fi = float_of_int index and fsize = float_of_int size in
+    let fred = (cos (fi *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
+    let fgreen = (cos ((fi +. (fsize /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
+    let fblue = (cos ((fi +. ((fsize *. 2.0) /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
+
+    ((int_of_float fred) * 65536) + ((int_of_float fgreen) * 256) + (int_of_float fblue)
+  )
+
 (* ----- *)
 
 let boot (_screen : screen) =
@@ -68,19 +78,21 @@ let fract_shader (x : int) (y : int) (zoom : float) (screen : screen) =
   let fx = Float.of_int x in
   let px = (fx -. fxoffset) *. fxstep in
 
-  let rec loop (a : float) (b : float) (i : int) : int = 
+  let rec loop (a : float) (b : float) (i : int) : int option = 
     match (i == max_iterations) with
-    | true -> i
+    | true -> None
     | false -> (
       let current = ((a *. a) +. (b *. b)) <= 4. in
       match current with
-      | false -> i
+      | false -> Some i
       | true -> (loop 
         (((a *. a) -. (b *. b)) +. px)
         ((2. *. a *. b) +. py)
         (i + 1))) in
   let col = loop 0.0 0.0 0 in
-  col mod (List.length screen.palette)
+  match col with
+  | None -> 0
+  | Some col -> (col mod ((List.length screen.palette) - 1)) + 1
 
 let tick (t : int) (screen : screen) : int array array =
   let ft = (Float.of_int t) /. 50.
@@ -88,11 +100,11 @@ let tick (t : int) (screen : screen) : int array array =
   and fyoffset = (Float.of_int screen.height) /. 2. in
   Array.init screen.height (fun (y : int) : int array ->
     Array.init screen.width (fun (x : int) : int ->
-      let x1 = (((Float.of_int x) -. fxoffset) +. (fxoffset *. sin ft))
-      and y1 = ((Float.of_int y) -. fyoffset) +. (fyoffset *. cos ft) in
+      let x1 = (((Float.of_int x) -. fxoffset) -. ((fxoffset *. sin ft) *. 0.5))
+      and y1 = (((Float.of_int y) -. fyoffset) -. ((fyoffset *. cos ft) *. 0.5)) in
       let u = Int.of_float ((x1 *. cos ft) -. (y1 *. sin ft))
       and v = Int.of_float (((x1 *. sin ft) +. (y1 *. cos ft))) in
-      let col = fract_shader u v (0.75 +. cos ft) screen in
+      let col = fract_shader u v (0.75 +. (0.5 *. (sin ft))) screen in
       if (col < 0) then (col + (List.length screen.palette)) else col
     )
   )
@@ -105,7 +117,7 @@ let inner_tick (t : int) (screen : screen) =
   synchronize ()
 
 let () =
-  let palette = load_tic80_palette tic80_palette
+  let palette = 0 :: generate_plasma_palette 15
   and width = 240
   and height = 136 in
   let screen : screen = {
