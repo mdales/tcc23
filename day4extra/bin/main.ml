@@ -34,7 +34,7 @@ let load_tic80_palette (raw : string) =
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks
 
-let set_palette_color (palette : color list) (index : int) =
+let _set_palette_color (palette : color list) (index : int) =
   let colour = List.nth palette index in
   set_color colour
 
@@ -53,51 +53,47 @@ let buffer_to_image (screen : screen) (buffer : int array array) : image =
 
 (* ----- *)
 
-let boot (screen : screen) =
-  set_palette_color screen.palette 0;
-  fill_rect 0 0 screen.width screen.height
+let boot (_screen : screen) =
+  ()
 
-let _tick (t : int) (screen : screen) : int array array =
-  let ft = (Float.of_int t) /. 100.
-  and fxoffset = (Float.of_int screen.width) /. 2.
-  and fyoffset = (Float.of_int screen.height) /. 2. in
-  Array.init screen.height (fun (y : int) : int array ->
-    Array.init screen.width (fun (x : int) : int ->
-      let x1 = ((Float.of_int x) -. fxoffset) +. (fxoffset *. sin ft)
-      and y1 = ((Float.of_int y) -. fyoffset) +. (fyoffset *. sin ft) in
-      let u = Int.of_float ((x1 *. cos ft) -. (y1 *. sin ft))
-      and v = Int.of_float (((x1 *. sin ft) +. (y1 *. cos ft))) in
-      let col = ((u land v) / 5) mod (List.length screen.palette) in
-      if (col < 0) then (col + (List.length screen.palette)) else col
-    )
-  )
-
-let tick (_t : int) (screen : screen) = 
+let fract_shader (x : int) (y : int) (zoom : float) (screen : screen) = 
   let fxoffset = (Float.of_int screen.width) /. 2.
   and fyoffset = (Float.of_int screen.height) /. 2. in
-  let fxstep = 3. /. (Float.of_int screen.width) 
-  and fystep = 3. /. (Float.of_int screen.height) in
+  let fxstep = (3. *. zoom) /. (Float.of_int screen.width) 
+  and fystep = (2. *. zoom) /. (Float.of_int screen.height) in
   let max_iterations = 64 in
-  Array.init screen.height (fun (y : int) : int array ->
-    let fy = Float.of_int y in
-    let py = (fy -. fyoffset) *. fystep in
-    Array.init screen.width (fun (x : int) : int ->
-      let fx = Float.of_int x in
-      let px = (fx -. fxoffset) *. fxstep in
+  
+  let fy = Float.of_int y in
+  let py = (fy -. fyoffset) *. fystep in
+  let fx = Float.of_int x in
+  let px = (fx -. fxoffset) *. fxstep in
 
-      let rec loop (a : float) (b : float) (i : int) : int = 
-        match (i == max_iterations) with
-        | true -> i
-        | false -> (
-          let current = ((a *. a) +. (b *. b)) <= 4. in
-          match current with
-          | false -> i
-          | true -> (loop 
-            (((a *. a) -. (b *. b)) +. px)
-            ((2. *. a *. b) +. py)
-            (i + 1))) in
-      let col = loop 0.0 0.0 0 in
-      col mod (List.length screen.palette)
+  let rec loop (a : float) (b : float) (i : int) : int = 
+    match (i == max_iterations) with
+    | true -> i
+    | false -> (
+      let current = ((a *. a) +. (b *. b)) <= 4. in
+      match current with
+      | false -> i
+      | true -> (loop 
+        (((a *. a) -. (b *. b)) +. px)
+        ((2. *. a *. b) +. py)
+        (i + 1))) in
+  let col = loop 0.0 0.0 0 in
+  col mod (List.length screen.palette)
+
+let tick (t : int) (screen : screen) : int array array =
+  let ft = (Float.of_int t) /. 50.
+  and fxoffset = (Float.of_int screen.width) /. 5.
+  and fyoffset = (Float.of_int screen.height) /. 2. in
+  Array.init screen.height (fun (y : int) : int array ->
+    Array.init screen.width (fun (x : int) : int ->
+      let x1 = (((Float.of_int x) -. fxoffset) +. (fxoffset *. sin ft))
+      and y1 = ((Float.of_int y) -. fyoffset) +. (fyoffset *. cos ft) in
+      let u = Int.of_float ((x1 *. cos ft) -. (y1 *. sin ft))
+      and v = Int.of_float (((x1 *. sin ft) +. (y1 *. cos ft))) in
+      let col = fract_shader u v (0.75 +. cos ft) screen in
+      if (col < 0) then (col + (List.length screen.palette)) else col
     )
   )
 
