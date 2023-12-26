@@ -57,9 +57,7 @@ let boot (_screen : screen) =
 
 let tick (t : int) (screen : screen) : int array array =
   let ft = (Float.of_int t) /. 20. in
-  let buffer = Array.init screen.height (fun _ -> 
-    Array.make screen.width 15
-  ) in 
+  let buffer = Array.init screen.height (fun _ -> Array.make screen.width 15) in 
 
   for ly = 1 to 8 do
     let fly = Float.of_int ly in
@@ -71,15 +69,13 @@ let tick (t : int) (screen : screen) : int array array =
     done
   done;
 
+  let pattern = Array.init 9 (fun i -> i + 7) in
   for i = 1 to 64 do
     let fi = Float.of_int i in
     let sv = (sin ((fi /. 13.) +. (ft /. 8.))) *. (sin ((fi /. 7.) +. (ft /. 2.)) *. 60.) in
     let barx = (Int.of_float sv) + 120 in
-    for y = (0 + i * 2) to 135 do
-      let row = buffer.(y) in
-      for j = 0 to 8 do
-        row.(barx + j) <- (j + 7)
-      done
+    for y = (i * 2) to 135 do
+      Array.blit pattern 0 buffer.(y) barx (Array.length pattern)
     done
   done;
 
