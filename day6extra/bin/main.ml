@@ -7,10 +7,9 @@ type screen = {
   palette         : color list ;
 }
 
-let tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
-let _havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
+let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
+let havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
 let _vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
-(* let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb7400b86930c35e60ce5390d94ea8de48bfe3" *)
 
 exception String_not_multiple_of_chunk_size
 
@@ -51,16 +50,6 @@ let buffer_to_image (screen : screen) (buffer : int array array) : image =
   ) (Array.to_list buffer)) in
    make_image raw
 
-let _generate_plasma_palette (size : int) : int list = 
-  List.init size (fun (index : int): int ->
-    let fi = float_of_int index and fsize = float_of_int size in
-    let fred = (cos (fi *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
-    let fgreen = (cos ((fi +. (fsize /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
-    let fblue = (cos ((fi +. ((fsize *. 2.0) /. 3.0)) *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
-
-    ((int_of_float fred) * 65536) + ((int_of_float fgreen) * 256) + (int_of_float fblue)
-  )
-
 (* ----- *)
 
 let boot (_screen : screen) =
@@ -69,26 +58,28 @@ let boot (_screen : screen) =
 let tick (t : int) (screen : screen) : int array array =
   let ft = (Float.of_int t) /. 20. in
   let buffer = Array.init screen.height (fun _ -> 
-    Array.init screen.width (fun _ -> 15)
+    Array.make screen.width 15
   ) in 
 
   for ly = 1 to 8 do
     let fly = Float.of_int ly in
     let sv = sin ((ft /. 2.) +. (fly /. 4.)) in
+    let bary = (Int.of_float (sv *. 50.)) + 68 in
     for lx = 1 to 8 do
-      (* Hack - this is a full screen line drawing *)
-      buffer.(68 + lx + Int.of_float ((sv *. 50.))) <- Array.make screen.width (lx + 7)
+      let row = buffer.(bary + lx) in
+      Array.fill row 0 screen.width (lx + 7)
     done
   done;
 
   for i = 1 to 64 do
     let fi = Float.of_int i in
     let sv = (sin ((fi /. 13.) +. (ft /. 8.))) *. (sin ((fi /. 7.) +. (ft /. 2.)) *. 60.) in
-    for j = 0 to 8 do
-      for y = (0 + i * 2) to 135 do
-        buffer.(y).((Int.of_float sv) + j + 120) <- (j + 7)
+    let barx = (Int.of_float sv) + 120 in
+    for y = (0 + i * 2) to 135 do
+      let row = buffer.(y) in
+      for j = 0 to 8 do
+        row.(barx + j) <- (j + 7)
       done
-     (* line(sv+j+120,0+i*2,sv+j+120,136,j+8) *)
     done
   done;
 
@@ -98,12 +89,11 @@ let tick (t : int) (screen : screen) : int array array =
 (* ----- *)
 
 let inner_tick (t : int) (screen : screen) =
-  let buffer = tick t screen in
-  draw_image (buffer_to_image screen buffer) 0 0;
+  tick t screen |> buffer_to_image screen |> (fun b -> draw_image b 0 0);
   synchronize ()
 
 let () =
-  let palette = load_tic80_palette tic80_palette 
+  let palette = load_tic80_palette havrekaka_palette 
   and width = 240
   and height = 136 in
   let screen : screen = {
