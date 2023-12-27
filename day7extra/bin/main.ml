@@ -132,7 +132,7 @@ let tick (t : int) (screen : screen) =
       left (fi +. (3. *. ft)) turtle |>
       star (Float.rem (2. *. (ft +. (fi *. 150.))) 450.) (abs (Int.of_float (5. *. sin (ft /. 10.))))
     ) in
-    let steps = star.path in
+    let steps = List.rev star.path in
     draw_poly (Array.of_list (List.filter_map (fun step ->
       let x, y, pen = step in
       match pen with
