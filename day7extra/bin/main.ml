@@ -6,6 +6,12 @@ type screen = {
   palette : color list;
 }
 
+type turtle = {
+  angle : float;
+  position : (float * float) ;
+  mark : bool ;
+}
+
 let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
 let _havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
 let _vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
@@ -46,62 +52,64 @@ let set_palette_color (palette : color list) (index : int) =
 
 (* ----- *)
 
-let angle = ref 0.
-let pos = ref (0., 0.)
+let left (a : float) (t : turtle) : turtle = 
+  { t with angle = t.angle -. ((a /. 360.) *. 2. *. Float.pi)}
 
-let turtle_draw = ref true
+let right (a : float) (t : turtle) : turtle = 
+  { t with angle = t.angle +. ((a /. 360.) *. 2. *. Float.pi)}
 
-let left (a : float) = 
-  angle := (!angle) -. ((a /. 360.) *. 2. *. Float.pi)
-
-let right (a : float) = 
-  angle := (!angle) +. ((a /. 360.) *. 2. *. Float.pi)
-
-let forward(dist : float) = 
-  let x, y = !pos in
-  pos := (
-    x +. ((sin !angle) *. dist),
-    y +. ((cos !angle) *. dist)
-  );
-  let f = (match (!turtle_draw) with
+let forward (dist : float) (t : turtle) : turtle = 
+  let x, y = t.position in
+  let newpos = (
+    x +. ((sin t.angle) *. dist),
+    y +. ((cos t.angle) *. dist)
+  ) in
+  let f = (match t.mark with
   | true -> lineto
   | false -> moveto)
   in
-  let fx, fy = !pos in
-  f (Int.of_float fx) (Int.of_float fy)
+  let fx, fy = newpos in
+  f (Int.of_float fx) (Int.of_float fy);
+  { t with position = newpos }
 
-let penup () = 
-  turtle_draw := false
+let penup (t : turtle) : turtle = 
+  {t with mark = false}
 
-let pendown () = 
-  turtle_draw := true
+let pendown (t : turtle) : turtle = 
+  {t with mark = true}
 
 (* ----- *)
 
-let rec kock (length : float) (level : int) =
+let rec kock (length : float) (level : int) (t : turtle) : turtle  =
   match level with
-  | 0 -> forward length
+  | 0 -> forward length t
   | _ -> (
     let l = length /. 3. in
-      kock l (level - 1);
-      left 60.;
-      kock l (level - 1);
-      right 120.;
-      kock l (level - 1);
-      left 60.;
-      kock l (level - 1);
+      kock l (level - 1) t |>
+      left 60. |>
+      kock l (level - 1) |>
+      right 120. |>
+      kock l (level - 1) |>
+      left 60. |>
+      kock l (level - 1)
   )
 
-let star (length : float) (level : int) = 
-  penup ();
-  left (360. /. 3.);
-  forward length;
-  right (360. /. 3.);
-  pendown ();
-  for _ = 0 to 5 do 
-    kock length level;
-    right 60.
-  done
+let star (length : float) (level : int) (t : turtle) : turtle = 
+  let moved_t = penup t |>
+  left (360. /. 3.) |>
+  forward length |>
+  right (360. /. 3.) |>
+  pendown in
+
+  let rec loop (index : int) (t : turtle) : turtle =
+    match index with
+    | 0 -> t
+    | _ -> 
+      kock length level t |>
+      right 60. |>
+      loop (index - 1) 
+    in
+      loop 6 moved_t
 
 (* ----- *)
 
@@ -113,14 +121,19 @@ let tick (t : int) (screen : screen) =
   fill_rect 0 0 screen.width screen.height;
   set_palette_color screen.palette 10;
 
-  left (1.);
-
   for i = 0 to 2 do
     moveto (screen.width / 2) (screen.height / 2);
-    pos := (Float.of_int (screen.width / 2)), (Float.of_int (screen.height / 2));
-    
+    let turtle = {
+      angle = 0. ;
+      position = (Float.of_int (screen.width / 2)), (Float.of_int (screen.height / 2)) ;
+      mark = false ;
+    } in
+  
     let ft = Float.of_int t and fi = Float.of_int i in
-    star (Float.rem (2. *. (ft +. (fi *. 140.))) 450.) (abs (Int.of_float (5. *. sin (ft /. 10.))))
+    ignore (
+      left (fi +. (3. *. ft)) turtle |>
+      star (Float.rem (2. *. (ft +. (fi *. 140.))) 450.) (abs (Int.of_float (5. *. sin (ft /. 10.))))
+    )
   done
 
 (* ----- *)
