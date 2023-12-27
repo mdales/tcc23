@@ -8,7 +8,7 @@ type screen = {
 
 type turtle = {
   angle : float;
-  position : (float * float) ;
+  path : (float * float * bool) list;
   mark : bool ;
 }
 
@@ -59,18 +59,22 @@ let right (a : float) (t : turtle) : turtle =
   { t with angle = t.angle +. ((a /. 360.) *. 2. *. Float.pi)}
 
 let forward (dist : float) (t : turtle) : turtle = 
-  let x, y = t.position in
+  let x, y, _ = match t.path with
+  | [] -> 0., 0., false
+  | hd :: _ -> hd
+  in
   let newpos = (
     x +. ((sin t.angle) *. dist),
-    y +. ((cos t.angle) *. dist)
+    y +. ((cos t.angle) *. dist),
+    t.mark
   ) in
   let f = (match t.mark with
   | true -> lineto
   | false -> moveto)
   in
-  let fx, fy = newpos in
+  let fx, fy, _ = newpos in
   f (Int.of_float fx) (Int.of_float fy);
-  { t with position = newpos }
+  { t with path = newpos :: t.path }
 
 let penup (t : turtle) : turtle = 
   {t with mark = false}
@@ -125,7 +129,7 @@ let tick (t : int) (screen : screen) =
     moveto (screen.width / 2) (screen.height / 2);
     let turtle = {
       angle = 0. ;
-      position = (Float.of_int (screen.width / 2)), (Float.of_int (screen.height / 2)) ;
+      path = [ ((Float.of_int (screen.width / 2)), (Float.of_int (screen.height / 2)), false) ] ;
       mark = false ;
     } in
   
