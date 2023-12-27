@@ -12,12 +12,12 @@ type turtle = {
   mark : bool ;
 }
 
-let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
+let tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
 let _havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
 let _vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
 (* let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb7400b86930c35e60ce5390d94ea8de48bfe3" *)
 
-let generate_mono_palette (size : int) : int list = 
+let _generate_mono_palette (size : int) : int list = 
   List.init size (fun (index : int): int ->
     let fi = float_of_int index and fsize = float_of_int size in
     let ch = (cos (fi *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
@@ -41,7 +41,7 @@ let string_to_chunks (x : string) (size : int) : string list =
 let chunks_to_colors (raw : string list) : int list =
   List.map (fun (colorstr : string): int -> int_of_string ("0x" ^ colorstr)) raw
 
-let _load_tic80_palette (raw : string) =
+let load_tic80_palette (raw : string) =
   let parts = String.split_on_char ':' raw in
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks
@@ -68,12 +68,6 @@ let forward (dist : float) (t : turtle) : turtle =
     y +. ((cos t.angle) *. dist),
     t.mark
   ) in
-  let f = (match t.mark with
-  | true -> lineto
-  | false -> moveto)
-  in
-  let fx, fy, _ = newpos in
-  f (Int.of_float fx) (Int.of_float fy);
   { t with path = newpos :: t.path }
 
 let penup (t : turtle) : turtle = 
@@ -123,9 +117,9 @@ let boot (_screen : screen) =
 let tick (t : int) (screen : screen) =
   set_palette_color screen.palette 0;
   fill_rect 0 0 screen.width screen.height;
-  set_palette_color screen.palette 10;
 
   for i = 0 to 2 do
+    set_palette_color screen.palette (10 + (i mod 2));
     moveto (screen.width / 2) (screen.height / 2);
     let turtle = {
       angle = 0. ;
@@ -133,11 +127,18 @@ let tick (t : int) (screen : screen) =
       mark = false ;
     } in
   
-    let ft = Float.of_int t and fi = Float.of_int i in
-    ignore (
+    let ft = Float.of_int t and fi = Float.of_int (2 - i) in
+    let star = (
       left (fi +. (3. *. ft)) turtle |>
-      star (Float.rem (2. *. (ft +. (fi *. 140.))) 450.) (abs (Int.of_float (5. *. sin (ft /. 10.))))
-    )
+      star (Float.rem (2. *. (ft +. (fi *. 150.))) 450.) (abs (Int.of_float (5. *. sin (ft /. 10.))))
+    ) in
+    let steps = star.path in
+    draw_poly (Array.of_list (List.filter_map (fun step ->
+      let x, y, pen = step in
+      match pen with
+      | true -> Some ((Int.of_float x), (Int.of_float y))
+      | false -> None
+    ) steps))
   done
 
 (* ----- *)
@@ -150,7 +151,8 @@ let () =
   let screen : screen = {
     width = 640 ;
     height = 480 ;
-    palette = generate_mono_palette 16;
+    (* palette = generate_mono_palette 16; *)
+    palette = load_tic80_palette tic80_palette;
   } in
 
   open_graph (Printf.sprintf " %dx%d" screen.width screen.height);
