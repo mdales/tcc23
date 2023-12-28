@@ -9,7 +9,7 @@ type screen = {
 
 let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
 let _havrekaka_palette = "000:ffffff6df7c111adc1606c813934571e88755bb361a1e55af7e476f99252cb4d686a3771c92464f48cb6f7b69e9b9c82"
-let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
+let vapour_palette = "000:2420387400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb"
 (* let vapour_palette = "000:7400b86930c35e60ce5390d94ea8de48bfe356cfe164dfdf72efdd80ffdb7400b86930c35e60ce5390d94ea8de48bfe3" *)
 
 let _generate_mono_palette (size : int) : int list = 
@@ -60,17 +60,39 @@ let buffer_to_image (screen : screen) (buffer : int array array) : image =
 
 (* ----- *)
 
-
+let filled_circle (x : int) (y : int) (r : int) (col : int) (buffer : int array array) =
+  let miny = y - (r - 1)
+  and maxy = y + (r - 1) 
+  and fr = Float.of_int (r - 1) in
+  for yi = miny to maxy do
+    let row = buffer.(yi) in
+    let a = acos ((Float.of_int (yi - y)) /. fr) in
+    let xw = Int.of_float ((sin a) *. fr) in
+    let minx = x - xw
+    and maxx = x + xw in
+    for xi = minx to maxx do
+      row.(xi) <- col
+    done
+  done
 
 (* ----- *)
 
-let boot (_screen : screen) = 
-  ()
-
-let tick (t : int) (screen : screen) : int array array =
+let boot (screen : screen) : int array array = 
   let buffer = Array.init screen.height (fun _ ->
     Array.make screen.width 0
   ) in
+  filled_circle (screen.width / 2) (screen.height / 2) (screen.height / 2) 1 buffer;
+  buffer
+
+let tick (t : int) (screen : screen) (prev : int array array) : int array array =
+  let buffer = Array.map (fun row ->
+    Array.map (fun pixel -> 
+      match pixel with
+      | 0 -> 0
+      | 1 -> 1
+      | _ -> (pixel - 1)
+    ) row
+  ) prev in
   (* set_palette_color screen.palette 0;
   fill_circle (screen.width / 2) (screen.height / 2) (screen.height / 2); *)
 
@@ -79,7 +101,7 @@ let tick (t : int) (screen : screen) : int array array =
   and r = Float.pi *. 2. /. 235.
   and x = ref 0.
   and v = ref 0.
-  and ft = (Float.of_int t) *. 0.025 in
+  and ft = (Float.of_int t) *. (0.025 /. 2.) in
 
   let qs = ((Float.of_int screen.height) /. 4.) -. 1. in
 
@@ -92,7 +114,7 @@ let tick (t : int) (screen : screen) : int array array =
       v := (cos a) +. (cos b);
       x := u +. ft;
 
-      let col = 1 + ((i + (j / 36)) mod ((List.length screen.palette) - 1)) in
+      let col = 2 + ((i + (j / 36)) mod ((List.length screen.palette) - 2)) in
       let xpos = ((screen.width / 2) + Int.of_float (u *. qs))
       and ypos = ((screen.height / 2) + Int.of_float (!v *. qs)) in
       buffer.(ypos).(xpos) <- col
@@ -102,9 +124,9 @@ let tick (t : int) (screen : screen) : int array array =
 
 (* ----- *)
 
-let inner_tick (t : int) (screen : screen) =
+(* let _inner_tick (t : int) (screen : screen) =
   tick t screen |> buffer_to_image screen |> (fun b -> draw_image b 0 0);
-  synchronize ()
+  synchronize () *)
 
 let () =
   let palette = load_tic80_palette vapour_palette 
@@ -122,16 +144,18 @@ let () =
   auto_synchronize false;
   (* set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1"; *)
 
-  boot screen;
+  let initial_buffer = boot screen
+  and initial_t = 0 in
 
-  let t = ref 0 in
-  while true do
-    (* Unix.sleepf 0.05; *)
+  let rec loop (t : int) (prev_buffer : int array array) = (
     let status = wait_next_event[ Poll; Key_pressed ] in
-    if status.keypressed && status.key == ' ' then
-      raise Exit
-    else (
-      inner_tick !t screen;
-      t := !t + 1
+    match status.keypressed with
+    | true -> raise Exit
+    | false -> (
+      let updated_buffer = tick t screen prev_buffer in
+      buffer_to_image screen updated_buffer |> (fun b -> draw_image b 0 0);
+      synchronize ();
+      (* Unix.sleepf 0.05; *)
+      loop (t + 1) updated_buffer
     )
-  done
+  ) in loop initial_t initial_buffer
