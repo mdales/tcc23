@@ -41,10 +41,6 @@ let load_tic80_palette (raw : string) =
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks
 
-let _set_palette_color (palette : color list) (index : int) =
-  let colour = List.nth palette index in
-  set_color colour
-
 let expanded_row (screen : screen) (row : int array) : color array =
   Array.concat (List.map (fun (vl : int) : color array ->
     let col = List.nth screen.palette vl in
@@ -88,13 +84,10 @@ let tick (t : int) (screen : screen) (prev : int array array) : int array array 
   let buffer = Array.map (fun row ->
     Array.map (fun pixel -> 
       match pixel with
-      | 0 -> 0
-      | 1 -> 1
+      | 0 | 1 -> pixel
       | _ -> (pixel - 1)
     ) row
   ) prev in
-  (* set_palette_color screen.palette 0;
-  fill_circle (screen.width / 2) (screen.height / 2) (screen.height / 2); *)
 
   let n = 40
   and m = 200
@@ -123,10 +116,6 @@ let tick (t : int) (screen : screen) (prev : int array array) : int array array 
   buffer
 
 (* ----- *)
-
-(* let _inner_tick (t : int) (screen : screen) =
-  tick t screen |> buffer_to_image screen |> (fun b -> draw_image b 0 0);
-  synchronize () *)
 
 let () =
   let palette = load_tic80_palette vapour_palette 
