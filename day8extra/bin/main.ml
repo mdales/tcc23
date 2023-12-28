@@ -1,9 +1,10 @@
 open Graphics
 
 type screen = {
-  width   : int ;
-  height  : int ;
-  palette : color list;
+  width           : int ;
+  height          : int ;
+  scale           : int ;
+  palette         : color list ;
 }
 
 let _tic80_palette = "000:1a1c2c5d275db13e53ef7d57ffcd75a7f07038b76425717929366f3b5dc941a6f673eff7f4f4f494b0c2566c86333c57"
@@ -40,9 +41,22 @@ let load_tic80_palette (raw : string) =
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks
 
-let set_palette_color (palette : color list) (index : int) =
+let _set_palette_color (palette : color list) (index : int) =
   let colour = List.nth palette index in
   set_color colour
+
+let expanded_row (screen : screen) (row : int array) : color array =
+  Array.concat (List.map (fun (vl : int) : color array ->
+    let col = List.nth screen.palette vl in
+      Array.make screen.scale col
+    ) (Array.to_list row))
+
+let buffer_to_image (screen : screen) (buffer : int array array) : image =
+  let raw = Array.concat (List.map (fun (row : int array) : color array array ->
+    let colrow = expanded_row screen row in
+      Array.make screen.scale colrow
+  ) (Array.to_list buffer)) in
+    make_image raw
 
 (* ----- *)
 
@@ -53,11 +67,12 @@ let set_palette_color (palette : color list) (index : int) =
 let boot (_screen : screen) = 
   ()
 
-let tick (t : int) (screen : screen) =
-  set_color 0;
-  fill_rect 0 0 screen.width screen.height;
-  set_palette_color screen.palette 0;
-  fill_circle (screen.width / 2) (screen.height / 2) (screen.height / 2);
+let tick (t : int) (screen : screen) : int array array =
+  let buffer = Array.init screen.height (fun _ ->
+    Array.make screen.width 0
+  ) in
+  (* set_palette_color screen.palette 0;
+  fill_circle (screen.width / 2) (screen.height / 2) (screen.height / 2); *)
 
   let n = 40
   and m = 200
@@ -65,6 +80,8 @@ let tick (t : int) (screen : screen) =
   and x = ref 0.
   and v = ref 0.
   and ft = (Float.of_int t) *. 0.025 in
+
+  let qs = ((Float.of_int screen.height) /. 4.) -. 1. in
 
   for i = 0 to n do
     for j = 0 to m do
@@ -76,36 +93,40 @@ let tick (t : int) (screen : screen) =
       x := u +. ft;
 
       let col = 1 + ((i + (j / 36)) mod ((List.length screen.palette) - 1)) in
-      set_palette_color screen.palette col;
-      let qs = (Float.of_int screen.height) /. 4. in
-      fill_circle ((screen.width / 2) + Int.of_float (u *. qs)) ((screen.height / 2) + Int.of_float (!v *. qs)) 1
+      let xpos = ((screen.width / 2) + Int.of_float (u *. qs))
+      and ypos = ((screen.height / 2) + Int.of_float (!v *. qs)) in
+      buffer.(ypos).(xpos) <- col
     done
-  done
+  done;
+  buffer
 
 (* ----- *)
 
 let inner_tick (t : int) (screen : screen) =
-  tick t screen;
+  tick t screen |> buffer_to_image screen |> (fun b -> draw_image b 0 0);
   synchronize ()
 
 let () =
+  let palette = load_tic80_palette vapour_palette 
+  and width = 640
+  and height = 480 in
   let screen : screen = {
-    width = 640 ;
-    height = 480 ;
-    (* palette = generate_mono_palette 16; *)
-    palette = load_tic80_palette vapour_palette;
+    width = width ;
+    height = height ;
+    scale = 1 ;
+    palette = palette ;
   } in
 
-  open_graph (Printf.sprintf " %dx%d" screen.width screen.height);
-  set_window_title "TCC Day 7 Extra";
+  open_graph (Printf.sprintf " %dx%d" (screen.width * screen.scale) (screen.height * screen.scale));
+  set_window_title "TCC Day 8 Extra";
   auto_synchronize false;
-  set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1";
+  (* set_font "-*-*-bold-r-*-*-32-*-*-*-m-*-iso8859-1"; *)
 
   boot screen;
 
   let t = ref 0 in
   while true do
-    Unix.sleepf 0.05;
+    (* Unix.sleepf 0.05; *)
     let status = wait_next_event[ Poll; Key_pressed ] in
     if status.keypressed && status.key == ' ' then
       raise Exit
