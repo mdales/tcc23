@@ -119,12 +119,12 @@ let tick (t : int) (screen : screen) (prev : int array array) : int array array 
 
 let () =
   let palette = load_tic80_palette vapour_palette 
-  and width = 640
-  and height = 480 in
+  and width = 240
+  and height = 136 in
   let screen : screen = {
     width = width ;
     height = height ;
-    scale = 1 ;
+    scale = 3 ;
     palette = palette ;
   } in
 
