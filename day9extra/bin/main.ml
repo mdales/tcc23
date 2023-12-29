@@ -16,10 +16,9 @@ let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.framebuffer) : Fra
       let px = (screen.width / 2) + Int.of_float (fx /. (fz *. 1.8 -. 1200.) *. 1200.) 
       and py = (Int.of_float ((y -. 40.) /. (fz *. 1.8 -. 1200.) *. 1200.)) + 100
       and col = (Int.of_float y) + 6 in
+      let dith = if (Float.rem y 1.) > (Random.float 1.) then 1 else 0 in
 
-      (* if (py >= 0) && (py < screen.height) && (px >= 0) && (px < screen.width) then *)
-        (* buffer.(py).(px) <- (if col < 0 then col + ((List.length screen.palette) - 1) else col) *)
-      Framebuffer.filled_circle px py (20 / (22 - ((z) / 4))) (if col < 0 then col + ((List.length screen.palette) - 1) else col) buffer
+     Framebuffer.filled_circle px py (20 / (22 - ((z) / 4))) (col + dither) buffer
     done
   done;
   buffer
