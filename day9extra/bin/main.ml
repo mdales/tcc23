@@ -3,6 +3,7 @@ let boot (screen : Tcc.screen) : Framebuffer.framebuffer =
   Framebuffer.init screen.width screen.height (fun _x _y -> 0)
 
 let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.framebuffer) : Framebuffer.framebuffer =
+  Random.init 42;
   let ft = (Float.of_int t) *. 0.02 in
   let buffer = Framebuffer.init screen.width screen.height (fun _x _y -> 0) in
 
@@ -16,9 +17,12 @@ let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.framebuffer) : Fra
       let px = (screen.width / 2) + Int.of_float (fx /. (fz *. 1.8 -. 1200.) *. 1200.) 
       and py = (Int.of_float ((y -. 40.) /. (fz *. 1.8 -. 1200.) *. 1200.)) + 100
       and col = (Int.of_float y) + 6 in
-      let dith = if (Float.rem y 1.) > (Random.float 1.) then 1 else 0 in
+      let dither = if (Float.rem y 1.) > (Random.float 1.) then 1 else 0 in
+      let fdot = (20. /. (22. -. ((fz /. 8.) /. 4.))) in
+      let dotdither = if (Float.rem fdot 1.) > (Random.float 1.) then 1 else 0 in
+      let dot = (Int.of_float fdot) + dotdither in
 
-     Framebuffer.filled_circle px py (20 / (22 - ((z) / 4))) (col + dither) buffer
+     Framebuffer.filled_circle px py dot (col + dither) buffer
     done
   done;
   buffer
