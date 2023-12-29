@@ -1,14 +1,14 @@
 
-type framebuffer = int array array
+type t = int array array
 
-let init (width : int) (height : int) (f : int -> int -> int) : framebuffer =
+let init (width : int) (height : int) (f : int -> int -> int) : t =
   Array.init height (fun y ->
     Array.init width (fun x -> 
         f x y
       )
   ) 
 
-let filled_circle (x : int) (y : int) (r : float) (col : int) (buffer : framebuffer) =
+let filled_circle (x : int) (y : int) (r : float) (col : int) (buffer : t) =
   let fx = Float.of_int x and fy = Float.of_int y in
   let my = Float.of_int ((Array.length buffer) - 1)
   and mx = Float.of_int ((Array.length buffer.(0)) - 1) in
@@ -29,7 +29,7 @@ let filled_circle (x : int) (y : int) (r : float) (col : int) (buffer : framebuf
     done
   done
 
-let draw_line (x0 : int) (y0 : int) (x1 : int) (y1 : int) (col : int) (buffer : framebuffer) =
+let draw_line (x0 : int) (y0 : int) (x1 : int) (y1 : int) (col : int) (buffer : t) =
   let dx = abs (x1 - x0)
   and sx = if x0 < x1 then 1 else -1
   and dy = (abs (y1 - y0)) * -1

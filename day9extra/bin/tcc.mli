@@ -6,4 +6,4 @@ type screen = {
   palette         : int list ;
 }
 
-val tcc_init: screen -> string -> (screen -> Framebuffer.framebuffer) -> (int -> screen -> Framebuffer.framebuffer -> Framebuffer.framebuffer) -> unit
+val tcc_init: screen -> string -> (screen -> Framebuffer.t) -> (int -> screen -> Framebuffer.t -> Framebuffer.t) -> unit

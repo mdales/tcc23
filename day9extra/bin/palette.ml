@@ -1,15 +1,15 @@
-type palette = int list
+type t = int list
 
 exception String_not_multiple_of_chunk_size
 
-let generate_mono_palette (size : int) : palette = 
+let generate_mono_palette (size : int) : t = 
   List.init size (fun (index : int): int ->
     let fi = float_of_int index and fsize = float_of_int size in
     let ch = ((fi /. fsize) *. 255.0) in
     ((int_of_float ch) * 65536) + ((int_of_float ch) * 256) + (int_of_float ch)
   )
 
-let generate_plasma_palette (size : int) : palette = 
+let generate_plasma_palette (size : int) : t = 
   List.init size (fun (index : int): int ->
     let fi = float_of_int index and fsize = float_of_int size in
     let fred = (cos (fi *. ((2.0 *. Float.pi) /. fsize)) *. 127.0) +. 128.0 in
@@ -31,10 +31,10 @@ let string_to_chunks (x : string) (size : int) : string list =
   in
   List.rev (loop [] x)
 
-let chunks_to_colors (raw : string list) : palette =
+let chunks_to_colors (raw : string list) : t =
   List.map (fun (colorstr : string): int -> int_of_string ("0x" ^ colorstr)) raw
 
-let load_tic80_palette (raw : string) : palette =
+let load_tic80_palette (raw : string) : t =
   let parts = String.split_on_char ':' raw in
   let strchunks = string_to_chunks (List.nth parts 1) 6 in
   chunks_to_colors strchunks

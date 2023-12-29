@@ -1,8 +1,8 @@
 
-type framebuffer = int array array
+type t = int array array
 
-val init: int -> int -> (int -> int -> int) -> framebuffer
+val init: int -> int -> (int -> int -> int) -> t
 
-val filled_circle: int -> int -> float -> int -> framebuffer -> unit
+val filled_circle: int -> int -> float -> int -> t -> unit
 
-val draw_line: int -> int -> int -> int -> int -> framebuffer -> unit
+val draw_line: int -> int -> int -> int -> int -> t -> unit

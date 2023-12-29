@@ -1,8 +1,8 @@
 
-let boot (screen : Tcc.screen) : Framebuffer.framebuffer = 
+let boot (screen : Tcc.screen) : Framebuffer.t = 
   Framebuffer.init screen.width screen.height (fun _x _y -> 0)
 
-let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.framebuffer) : Framebuffer.framebuffer =
+let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.t) : Framebuffer.t =
   Random.init 42;
   let ft = (Float.of_int t) *. 0.02 in
   let buffer = Framebuffer.init screen.width screen.height (fun _x _y -> 0) in

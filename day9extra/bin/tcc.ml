@@ -4,7 +4,7 @@ type screen = {
   width   : int ;
   height  : int ;
   scale   : int ;
-  palette : Palette.palette ;
+  palette : Palette.t ;
 }
 
 let expanded_row (screen : screen) (row : int array) : color array =
@@ -13,7 +13,7 @@ let expanded_row (screen : screen) (row : int array) : color array =
       Array.make screen.scale col
     ) (Array.to_list row))
 
-let buffer_to_image (screen : screen) (buffer : Framebuffer.framebuffer) : image =
+let buffer_to_image (screen : screen) (buffer : Framebuffer.t) : image =
   let raw = Array.concat (List.map (fun (row : int array) : color array array ->
     let colrow = expanded_row screen row in
       Array.make screen.scale colrow
@@ -23,7 +23,7 @@ let buffer_to_image (screen : screen) (buffer : Framebuffer.framebuffer) : image
 
 (* ----- *)
 
-let tcc_init (screen : screen) (title : string) (boot : screen -> Framebuffer.framebuffer) (tick : int -> screen -> Framebuffer.framebuffer -> Framebuffer.framebuffer)  =
+let tcc_init (screen : screen) (title : string) (boot : screen -> Framebuffer.t) (tick : int -> screen -> Framebuffer.t -> Framebuffer.t)  =
 
   open_graph (Printf.sprintf " %dx%d" (screen.width * screen.scale) (screen.height * screen.scale));
   set_window_title title;
