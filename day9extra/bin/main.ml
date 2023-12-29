@@ -18,10 +18,7 @@ let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.t) : Framebuffer.t
       and py = (Int.of_float ((y -. 40.) /. (fz *. 1.8 -. 1200.) *. 1200.)) + 100
       and col = (Int.of_float y) + 6 in
       let dither = if (Float.rem y 1.) > (Random.float 1.) then 1 else 0 in
-      (* let dot = (20. /. (22. -. ((fz /. 8.) /. 4.))) in *)
-      let dot = 20. /. (77. -. (fz /. 8.)) in
-      (* let dotdither = if (Float.rem fdot 1.) > (Random.float 1.) then 1 else 0 in
-      let dot = (Int.of_float fdot) + dotdither in *)
+      let dot = (20. /. (78. -. (fz /. 8.))) in
 
      Framebuffer.filled_circle px py dot (col + dither) buffer
     done

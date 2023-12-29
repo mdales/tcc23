@@ -24,9 +24,10 @@ let filled_circle (x : int) (y : int) (r : float) (col : int) (buffer : t) =
     and pmaxx = fx +. xw in
     let minx = if (pminx < 0.) then 0. else pminx
     and maxx = if (pmaxx > mx) then mx else pmaxx in
-    for xi = (Int.of_float minx) to (Int.of_float maxx) do
-      row.(xi) <- col
-    done
+    if (maxx > 0.0) && (minx < mx) then
+      for xi = (Int.of_float minx) to (Int.of_float maxx) do
+        row.(xi) <- col
+      done
   done
 
 let draw_line (x0 : int) (y0 : int) (x1 : int) (y1 : int) (col : int) (buffer : t) =
