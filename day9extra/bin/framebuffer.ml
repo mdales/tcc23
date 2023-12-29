@@ -8,21 +8,23 @@ let init (width : int) (height : int) (f : int -> int -> int) : framebuffer =
       )
   ) 
 
-let filled_circle (x : int) (y : int) (r : int) (col : int) (buffer : framebuffer) =
-  let pminy = y - (r - 1)
-  and pmaxy = y + (r - 1) 
-  and fr = Float.of_int (r - 1) in
-  let miny = if (pminy < 0) then 0 else pminy
-  and maxy = if (pmaxy >= Array.length buffer) then ((Array.length buffer) - 1) else pmaxy in
-  for yi = miny to maxy do
+let filled_circle (x : int) (y : int) (r : float) (col : int) (buffer : framebuffer) =
+  let fx = Float.of_int x and fy = Float.of_int y in
+  let my = Float.of_int ((Array.length buffer) - 1)
+  and mx = Float.of_int ((Array.length buffer.(0)) - 1) in
+  let pminy = fy -. r
+  and pmaxy = fy +. r in
+  let miny = if (pminy < 0.) then 0. else pminy
+  and maxy = if (pmaxy > my) then my else pmaxy in
+  for yi = (Int.of_float miny) to (Int.of_float maxy) do
     let row = buffer.(yi) in
-    let a = acos ((Float.of_int (yi - y)) /. fr) in
-    let xw = Int.of_float ((sin a) *. fr) in
-    let pminx = x - xw
-    and pmaxx = x + xw in
-    let minx = if (pminx < 0) then 0 else pminx
-    and maxx = if (pmaxx >= Array.length row) then ((Array.length row) - 1) else pmaxx in
-    for xi = minx to maxx do
+    let a = acos ((Float.of_int (yi - y)) /. r) in
+    let xw = (sin a) *. r in
+    let pminx = fx -. xw
+    and pmaxx = fx +. xw in
+    let minx = if (pminx < 0.) then 0. else pminx
+    and maxx = if (pmaxx > mx) then mx else pmaxx in
+    for xi = (Int.of_float minx) to (Int.of_float maxx) do
       row.(xi) <- col
     done
   done
