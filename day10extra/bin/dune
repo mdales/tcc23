@@ -1,0 +1,4 @@
+(executable
+ (public_name day10extra)
+ (name main)
+ (libraries day10extra graphics unix))
