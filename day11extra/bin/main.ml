@@ -65,8 +65,9 @@ let _generate_points (ft : float) : point array =
     let thickness_radius = 10. 
     and dots_per_slice = 12
     and torus_radius = 20.
-    and slices_per_torus = 12 in 
+    and slices_per_torus = 24 in 
     let nested = Array.init slices_per_torus (fun s -> 
+      let slice_angle = (2. *. (Float.of_int s) *. Float.pi /. (Float.of_int slices_per_torus)) in
       Array.init dots_per_slice (fun i -> 
         let fi = Float.of_int i in
         let a = (2. *. fi *. Float.pi /. (Float.of_int dots_per_slice)) in
@@ -74,7 +75,7 @@ let _generate_points (ft : float) : point array =
           x = (thickness_radius +. offset) *. cos a ;
           y = (thickness_radius +. offset) *. sin a ;
           z = 0. ;
-        } |> translate_x (torus_radius +. offset) |> rotate_y (2. *. (Float.of_int s) *. Float.pi /. (Float.of_int slices_per_torus))
+        } |> translate_x (torus_radius +. offset) |> rotate_y (slice_angle +. sin (ft *. 0.05))
       ) 
     ) in
     let lested = Array.to_list nested in

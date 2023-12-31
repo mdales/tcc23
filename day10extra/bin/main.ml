@@ -40,7 +40,7 @@ let () =
   let screen : Tcc.screen = {
     width = 240 ;
     height = 136 ;
-    scale = 3 ;
+    scale = 4 ;
     palette = Palette.from_list this_rgb ;
   } in
  Tcc.tcc_init screen "TCC Day 10 extra" boot tick
