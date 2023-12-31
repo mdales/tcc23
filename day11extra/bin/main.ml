@@ -12,28 +12,25 @@ type point = {
 }
 
 let rotate_x (a : float) (p : point) : point =
-  {
-    x = p.x ;
+  { p with
     y = (p.y *. (cos (a))) -. (p.z *. sin(a)) ;
     z = (p.y *. sin(a)) +. (p.z *. cos(a)) ;
   }
 
 let rotate_y (a : float) (p : point) : point =
-  {
+  { p with
     x = (p.x *. cos(a)) -. (p.z *. sin(a)) ;
-    y = p.y ;
     z = (p.x *. sin(a)) +. (p.z *. cos(a)) ;
   }
     
 let rotate_z (a : float) (p : point) : point =
-  {
+  { p with
     x = (p.x *. cos(a)) -. (p.y *. sin(a)) ;
     y = (p.x *. sin(a)) +. (p.y *. cos(a)) ;
-    z = p.z ;
   }
 
 let translate_x (d : float) (p : point) : point = 
-  {p with x = p.x +. d}
+  { p with x = p.x +. d }
   
 let point_cmp (a : point) (b : point) : int =
   if a.z == b.z then 0
@@ -41,7 +38,7 @@ let point_cmp (a : point) (b : point) : int =
 
 (* ----- *)
 
-let _generate_points (ft : float) : point array =
+let _generate_cube (ft : float) : point array =
   let o = sin (ft /. 10.) in
   let offset = if o < 0. then ((0. -. o) *. 4.0) else 0. in
   let points : point array = Array.make (17 * 17 * 17) {x=0. ; y=0. ; z=0. } in
@@ -59,7 +56,7 @@ let _generate_points (ft : float) : point array =
   done;
   points
 
-  let generate_points (ft : float) : point array =
+  let generate_torus (ft : float) : point array =
     let o = sin (ft /. 10.) in
     let offset = if o < 0. then ((0. -. o) *. 10.0) else 0. in
     let thickness_radius = 10. 
@@ -90,13 +87,12 @@ let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.t) : Framebuffer.t
   let buffer = Framebuffer.init screen.width screen.height (fun _x _y -> 0) in
 
   let ft = Float.of_int t in
-  let points = generate_points ft in
-
-  let translated_points = Array.map (fun p ->
+  let points = generate_torus ft |> Array.map (fun p ->
     rotate_y (0.02 *. ft) p |> rotate_x (0.01 *. ft) |> rotate_z (0.005 *. ft)
-  ) points in
+  ) in
 
-  Array.sort point_cmp translated_points;
+  Array.sort point_cmp points;
+
   let m = 2000. +. cos(ft /. 30.) *. 600. 
   and z = 10. +. sin(ft /. 1000.) *. 5. 
   and d = 10. +. cos(ft /. 1000.) *. 5. in
@@ -110,7 +106,8 @@ let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.t) : Framebuffer.t
       (m /. 200.)
       (acol + 1)
       buffer
-  ) translated_points;
+  ) points;
+  
   buffer
 
 (* ----- *)
