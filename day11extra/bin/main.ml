@@ -58,11 +58,11 @@ let _generate_cube (ft : float) : point array =
 
   let generate_torus (ft : float) : point array =
     let o = sin (ft /. 10.) in
-    let offset = if o < 0. then ((0. -. o) *. 10.0) else 0. in
+    let offset = if o < 0. then ((0. -. o) *. 20.0) else 0. in
     let thickness_radius = 10. 
-    and dots_per_slice = 12
+    and dots_per_slice = 25
     and torus_radius = 20.
-    and slices_per_torus = 24 in 
+    and slices_per_torus = 70 in 
     let nested = Array.init slices_per_torus (fun s -> 
       let slice_angle = (2. *. (Float.of_int s) *. Float.pi /. (Float.of_int slices_per_torus)) in
       Array.init dots_per_slice (fun i -> 
@@ -107,7 +107,7 @@ let tick (t : int) (screen : Tcc.screen) (_prev : Framebuffer.t) : Framebuffer.t
       (acol + 1)
       buffer
   ) points;
-  
+
   buffer
 
 (* ----- *)
